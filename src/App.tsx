@@ -8,9 +8,9 @@ import {
   Position,
   ReactFlow,
   ReactFlowProvider,
+  applyNodeChanges,
   type Connection,
   type Edge,
-  type EdgeChange,
   type Node,
   type NodeChange,
   type NodeProps,
@@ -209,6 +209,99 @@ const nodeTypes: NodeTypes = {
   noteNode: NoteNode,
 };
 
+function buildPlannerNodes(
+  schema: SchemaDocument,
+  issues: ValidationIssue[],
+  selection: Selection,
+  selectField: (tableId: string, fieldId: string) => void,
+  previousNodes: PlannerNode[] = [],
+): PlannerNode[] {
+  const previousById = new Map(previousNodes.map((node) => [node.id, node]));
+
+  const tableNodes: TableFlowNode[] = schema.tables.map((table) => {
+    const previous = previousById.get(table.id);
+    const fallbackSize = estimateTableNodeSize(table);
+
+    return {
+      ...previous,
+      id: table.id,
+      type: 'tableNode',
+      position: table.position,
+      initialWidth: fallbackSize.width,
+      initialHeight: fallbackSize.height,
+      measured: measuredOrFallback(previous, fallbackSize),
+      data: {
+        table,
+        selectedFieldId: selection.kind === 'field' && selection.tableId === table.id ? selection.fieldId : undefined,
+        issues: issues.filter((issue) => issue.id.includes(table.id) || issue.message.includes(table.name)),
+        onSelectField: selectField,
+      },
+    };
+  });
+
+  const enumNodes: EnumFlowNode[] = schema.enums.map((schemaEnum) => {
+    const previous = previousById.get(schemaEnum.id);
+    const fallbackSize = estimateEnumNodeSize(schemaEnum);
+
+    return {
+      ...previous,
+      id: schemaEnum.id,
+      type: 'enumNode',
+      position: schemaEnum.position,
+      initialWidth: fallbackSize.width,
+      initialHeight: fallbackSize.height,
+      measured: measuredOrFallback(previous, fallbackSize),
+      data: { schemaEnum },
+    };
+  });
+
+  const noteNodes: NoteFlowNode[] = schema.notes.map((note) => {
+    const previous = previousById.get(note.id);
+    const fallbackSize = estimateNoteNodeSize(note);
+
+    return {
+      ...previous,
+      id: note.id,
+      type: 'noteNode',
+      position: note.position,
+      initialWidth: fallbackSize.width,
+      initialHeight: fallbackSize.height,
+      measured: measuredOrFallback(previous, fallbackSize),
+      data: { note },
+    };
+  });
+
+  return [...tableNodes, ...enumNodes, ...noteNodes];
+}
+
+function estimateTableNodeSize(table: SchemaTable) {
+  return {
+    width: 318,
+    height: 68 + Math.max(table.fields.length, 1) * 38,
+  };
+}
+
+function estimateEnumNodeSize(schemaEnum: SchemaEnum) {
+  return {
+    width: 318,
+    height: 82 + Math.ceil(Math.max(schemaEnum.values.length, 1) / 3) * 32,
+  };
+}
+
+function estimateNoteNodeSize(note: SchemaNote) {
+  return {
+    width: 318,
+    height: 112 + Math.ceil(note.body.length / 48) * 20,
+  };
+}
+
+function measuredOrFallback(node: PlannerNode | undefined, fallback: { width: number; height: number }) {
+  return {
+    width: node?.measured?.width ?? fallback.width,
+    height: node?.measured?.height ?? fallback.height,
+  };
+}
+
 export default function App() {
   return (
     <ReactFlowProvider>
@@ -236,35 +329,11 @@ function PlannerApp() {
     setPanelTab('inspect');
   }, []);
 
-  const nodes = useMemo<PlannerNode[]>(() => {
-    const tableNodes: TableFlowNode[] = schema.tables.map((table) => ({
-      id: table.id,
-      type: 'tableNode',
-      position: table.position,
-      data: {
-        table,
-        selectedFieldId: selection.kind === 'field' && selection.tableId === table.id ? selection.fieldId : undefined,
-        issues: issues.filter((issue) => issue.id.includes(table.id) || issue.message.includes(table.name)),
-        onSelectField: selectField,
-      },
-    }));
+  const [nodes, setNodes] = useState<PlannerNode[]>(() => buildPlannerNodes(schema, issues, selection, selectField));
 
-    const enumNodes: EnumFlowNode[] = schema.enums.map((schemaEnum) => ({
-      id: schemaEnum.id,
-      type: 'enumNode',
-      position: schemaEnum.position,
-      data: { schemaEnum },
-    }));
-
-    const noteNodes: NoteFlowNode[] = schema.notes.map((note) => ({
-      id: note.id,
-      type: 'noteNode',
-      position: note.position,
-      data: { note },
-    }));
-
-    return [...tableNodes, ...enumNodes, ...noteNodes];
-  }, [issues, schema.enums, schema.notes, schema.tables, selectField, selection]);
+  useEffect(() => {
+    setNodes((current) => buildPlannerNodes(schema, issues, selection, selectField, current));
+  }, [issues, schema, selectField, selection]);
 
   const edges = useMemo<Edge[]>(() => {
     return schema.relations.map((relation) => {
@@ -331,66 +400,34 @@ function PlannerApp() {
     }
   }, [schema.enums, schema.notes, schema.relations, schema.tables, selection]);
 
-  const onNodesChange = useCallback((changes: NodeChange[]) => {
-    const removedIds = new Set<string>();
-    const positions = new Map<string, XYPosition>();
+  const onNodesChange = useCallback((changes: NodeChange<PlannerNode>[]) => {
+    const safeChanges = changes.filter((change) => change.type !== 'remove');
 
-    changes.forEach((change) => {
-      if (change.type === 'remove') {
-        removedIds.add(change.id);
-      }
-
-      if (change.type === 'position' && change.position) {
-        positions.set(change.id, change.position);
-      }
-    });
-
-    if (!removedIds.size && !positions.size) {
+    if (!safeChanges.length) {
       return;
     }
 
-    updateSchema((current) => {
-      const removedTableIds = new Set(current.tables.filter((table) => removedIds.has(table.id)).map((table) => table.id));
-      const removedEnumIds = new Set(current.enums.filter((schemaEnum) => removedIds.has(schemaEnum.id)).map((schemaEnum) => schemaEnum.id));
+    setNodes((current) => applyNodeChanges(safeChanges, current));
+  }, []);
 
+  const persistNodePosition = useCallback((nodeId: string, position: XYPosition) => {
+    updateSchema((current) => {
       return {
         ...current,
-        tables: current.tables
-          .filter((table) => !removedIds.has(table.id))
-          .map((table) => ({
-            ...table,
-            position: positions.get(table.id) ?? table.position,
-            fields: table.fields.map((field) =>
-              field.enumId && removedEnumIds.has(field.enumId) ? { ...field, enumId: undefined } : field,
-            ),
-            indexes: table.indexes
-              .map((index) => ({ ...index, fields: index.fields.filter((fieldId) => table.fields.some((field) => field.id === fieldId)) }))
-              .filter((index) => index.fields.length > 0),
-          })),
-        relations: current.relations.filter(
-          (relation) => !removedTableIds.has(relation.from.tableId) && !removedTableIds.has(relation.to.tableId),
-        ),
-        enums: current.enums
-          .filter((schemaEnum) => !removedIds.has(schemaEnum.id))
-          .map((schemaEnum) => ({ ...schemaEnum, position: positions.get(schemaEnum.id) ?? schemaEnum.position })),
-        notes: current.notes
-          .filter((note) => !removedIds.has(note.id))
-          .map((note) => ({ ...note, position: positions.get(note.id) ?? note.position })),
+        tables: current.tables.map((table) => ({
+          ...table,
+          position: table.id === nodeId ? position : table.position,
+        })),
+        enums: current.enums.map((schemaEnum) => ({
+          ...schemaEnum,
+          position: schemaEnum.id === nodeId ? position : schemaEnum.position,
+        })),
+        notes: current.notes.map((note) => ({
+          ...note,
+          position: note.id === nodeId ? position : note.position,
+        })),
       };
     });
-  }, [updateSchema]);
-
-  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
-    const removedIds = changes.filter((change) => change.type === 'remove').map((change) => change.id);
-
-    if (!removedIds.length) {
-      return;
-    }
-
-    updateSchema((current) => ({
-      ...current,
-      relations: current.relations.filter((relation) => !removedIds.includes(relation.id)),
-    }));
   }, [updateSchema]);
 
   const onConnect = useCallback((connection: Connection) => {
@@ -655,8 +692,8 @@ function PlannerApp() {
             edges={edges}
             nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodeDragStop={(_, node) => persistNodePosition(node.id, node.position)}
             onNodeClick={(_, node) => {
               if (node.type === 'tableNode') {
                 setSelection({ kind: 'table', tableId: node.id });
@@ -672,11 +709,12 @@ function PlannerApp() {
               setSelection({ kind: 'relation', relationId: edge.id });
               setPanelTab('inspect');
             }}
-            fitView
+            defaultViewport={{ x: 0, y: 0, zoom: 0.9 }}
             minZoom={0.3}
             maxZoom={1.7}
             connectOnClick={false}
-            deleteKeyCode={['Backspace', 'Delete']}
+            deleteKeyCode={null}
+            nodeDragThreshold={4}
           >
             <Background color="#d9d0bd" gap={22} size={1.2} />
             <MiniMap
