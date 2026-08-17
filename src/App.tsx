@@ -29,11 +29,13 @@ import {
   KeyRound,
   Link2,
   ListChecks,
+  Moon,
   Network,
   PanelRight,
   Plus,
   Rows3,
   Sparkles,
+  Sun,
   Table2,
   Trash2,
   Upload,
@@ -75,8 +77,10 @@ import type {
 } from './types';
 
 const STORAGE_KEY = 'db-schema-planner:draft:v1';
+const THEME_STORAGE_KEY = 'db-schema-planner:theme';
 
 type PanelTab = 'inspect' | 'json' | 'issues';
+type ThemeMode = 'light' | 'dark';
 
 type TableNodeData = Record<string, unknown> & {
   table: SchemaTable;
@@ -327,6 +331,7 @@ export default function App() {
 
 function PlannerApp() {
   const [schema, setSchema] = usePersistentSchema();
+  const [theme, setTheme] = usePersistentTheme();
   const [selection, setSelection] = useState<Selection>({ kind: 'canvas' });
   const [panelTab, setPanelTab] = useState<PanelTab>('inspect');
   const [notice, setNotice] = useState('');
@@ -334,6 +339,7 @@ function PlannerApp() {
 
   const issues = useMemo(() => validateSchema(schema), [schema]);
   const jsonPreview = useMemo(() => JSON.stringify(schema, null, 2), [schema]);
+  const isDarkTheme = theme === 'dark';
 
   const updateSchema = useCallback((updater: (current: SchemaDocument) => SchemaDocument) => {
     setSchema((current) => touchSchema(updater(current)));
@@ -365,21 +371,21 @@ function PlannerApp() {
         animated: isSelected,
         markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
         style: {
-          stroke: isSelected ? '#d1495b' : '#276f86',
+          stroke: isSelected ? (isDarkTheme ? '#f06d78' : '#d1495b') : isDarkTheme ? '#4eb8b0' : '#276f86',
           strokeWidth: isSelected ? 3 : 2,
         },
         labelStyle: {
-          fill: '#1f2d2e',
+          fill: isDarkTheme ? '#f4ead6' : '#1f2d2e',
           fontWeight: 700,
           fontSize: 12,
         },
         labelBgStyle: {
-          fill: '#fffaf0',
+          fill: isDarkTheme ? '#20241f' : '#fffaf0',
           fillOpacity: 0.92,
         },
       };
     });
-  }, [schema.relations, selection]);
+  }, [isDarkTheme, schema.relations, selection]);
 
   useEffect(() => {
     if (notice) {
@@ -590,7 +596,7 @@ function PlannerApp() {
   }, [replaceSchema]);
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-theme={theme}>
       <header className="topbar">
         <div className="brand-block">
           <div className="brand-mark">
@@ -612,6 +618,20 @@ function PlannerApp() {
         </div>
 
         <div className="toolbar-actions">
+          <button
+            type="button"
+            className="theme-toggle"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-pressed={theme === 'dark'}
+            onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+          >
+            <span className="theme-toggle-track">
+              <span className="theme-toggle-thumb">
+                {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
+              </span>
+            </span>
+          </button>
           <button type="button" className="ghost-button" title="Start blank schema" onClick={() => replaceSchema(createBlankSchema())}>
             <FileJson2 size={17} />
             Blank
@@ -733,7 +753,7 @@ function PlannerApp() {
             deleteKeyCode={null}
             nodeDragThreshold={4}
           >
-            <Background color="#d9d0bd" gap={22} size={1.2} />
+            <Background color={isDarkTheme ? '#3a362d' : '#d9d0bd'} gap={22} size={1.2} />
             <MiniMap
               pannable
               zoomable
@@ -1312,6 +1332,24 @@ function usePersistentSchema(): [SchemaDocument, React.Dispatch<React.SetStateAc
   }, [schema]);
 
   return [schema, setSchema];
+}
+
+function usePersistentTheme(): [ThemeMode, React.Dispatch<React.SetStateAction<ThemeMode>>] {
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+
+    if (stored === 'light' || stored === 'dark') {
+      return stored;
+    }
+
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
+  return [theme, setTheme];
 }
 
 function patchTable(

@@ -19,6 +19,72 @@
   --amber: #dca92f;
   --violet: #7161ef;
   --shadow: 0 18px 48px rgba(44, 36, 26, 0.14);
+  --app-bg: #f4efe3;
+  --grid-x: rgba(23, 126, 137, 0.07);
+  --grid-y: rgba(209, 73, 91, 0.05);
+  --topbar-bg: rgba(255, 250, 240, 0.9);
+  --surface: rgba(255, 250, 240, 0.9);
+  --surface-solid: #fffdf7;
+  --surface-strong: #fffaf0;
+  --canvas-bg: linear-gradient(135deg, rgba(255, 250, 240, 0.9), rgba(237, 247, 244, 0.88)), #fffaf0;
+  --node-bg: rgba(255, 250, 240, 0.96);
+  --border: rgba(83, 74, 57, 0.16);
+  --border-strong: rgba(83, 74, 57, 0.22);
+  --section-text: #706754;
+  --hover-shadow: 0 8px 18px rgba(44, 36, 26, 0.12);
+  --node-shadow: 0 18px 38px rgba(44, 36, 26, 0.14);
+  --control-bg: #fffaf0;
+  --minimap-bg: rgba(255, 250, 240, 0.92);
+  --json-bg: #171f1e;
+  --json-ink: #f8f1da;
+  --toast-bg: #1e2726;
+  --success-bg: #dcf7eb;
+  --success-ink: #0d734a;
+  --warning-bg: #fff2cb;
+  --warning-ink: #765a08;
+  --error-bg: #ffe8e4;
+  --error-ink: #8f2f32;
+}
+
+.app-shell[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #181b17;
+  --paper-strong: #20241f;
+  --ink: #f4ead6;
+  --muted: #a9ad9f;
+  --line: #3a362d;
+  --line-strong: #5b5140;
+  --teal: #4eb8b0;
+  --mint: #7ad1ac;
+  --coral: #f06d78;
+  --amber: #efc65c;
+  --violet: #9c91ff;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+  --app-bg: #11130f;
+  --grid-x: rgba(78, 184, 176, 0.08);
+  --grid-y: rgba(240, 109, 120, 0.06);
+  --topbar-bg: rgba(24, 27, 23, 0.9);
+  --surface: rgba(27, 31, 26, 0.92);
+  --surface-solid: #20241f;
+  --surface-strong: #252920;
+  --canvas-bg: linear-gradient(135deg, rgba(24, 27, 23, 0.94), rgba(27, 42, 36, 0.88)), #151812;
+  --node-bg: rgba(32, 36, 31, 0.96);
+  --border: rgba(244, 234, 214, 0.12);
+  --border-strong: rgba(244, 234, 214, 0.2);
+  --section-text: #c0ad81;
+  --hover-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+  --node-shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
+  --control-bg: #20241f;
+  --minimap-bg: rgba(24, 27, 23, 0.94);
+  --json-bg: #0d0f0c;
+  --json-ink: #f3e6c9;
+  --toast-bg: #f4ead6;
+  --success-bg: rgba(122, 209, 172, 0.16);
+  --success-ink: #92e6c0;
+  --warning-bg: rgba(239, 198, 92, 0.16);
+  --warning-ink: #f2cd68;
+  --error-bg: rgba(240, 109, 120, 0.16);
+  --error-ink: #ff98a1;
 }
 
 * {
@@ -48,17 +114,61 @@ button {
   cursor: pointer;
 }
 
+.topbar,
+.brand-block input,
+.ghost-button,
+.primary-button,
+.tool-button,
+.template-button,
+.small-button,
+.danger-button,
+.icon-button,
+.panel-tabs button,
+.left-rail,
+.right-panel,
+.canvas-panel,
+.schema-node,
+.node-header,
+.field-row,
+.field-flags span,
+.type-pill,
+.enum-values span,
+.note-node p,
+.field-label input,
+.field-label select,
+.field-label textarea,
+.toggle-control,
+.field-picker-list button,
+.index-editor,
+.relationship-summary,
+.json-panel pre,
+.issue-item,
+.empty-graphic,
+.react-flow__controls-button,
+.react-flow__minimap,
+.react-flow__attribution {
+  transition:
+    background 280ms ease,
+    background-color 280ms ease,
+    border-color 280ms ease,
+    color 280ms ease,
+    box-shadow 280ms ease;
+}
+
 .app-shell {
   width: 100%;
   height: 100%;
   display: grid;
   grid-template-rows: 76px minmax(0, 1fr);
   background:
-    linear-gradient(90deg, rgba(23, 126, 137, 0.07) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(209, 73, 91, 0.05) 1px, transparent 1px),
-    #f4efe3;
+    linear-gradient(90deg, var(--grid-x) 1px, transparent 1px),
+    linear-gradient(0deg, var(--grid-y) 1px, transparent 1px),
+    var(--app-bg);
   background-size: 28px 28px;
   color: var(--ink);
+  transition:
+    background-color 280ms ease,
+    color 280ms ease;
 }
 
 .topbar {
@@ -67,10 +177,13 @@ button {
   justify-content: space-between;
   gap: 20px;
   padding: 12px 18px;
-  border-bottom: 1px solid rgba(83, 74, 57, 0.18);
-  background: rgba(255, 250, 240, 0.9);
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--topbar-bg);
   backdrop-filter: blur(14px);
   z-index: 10;
+  transition:
+    background 280ms ease,
+    border-color 280ms ease;
 }
 
 .brand-block {
@@ -126,6 +239,62 @@ button {
   flex-wrap: wrap;
 }
 
+.theme-toggle {
+  width: 58px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-solid);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition:
+    transform 140ms ease,
+    background 280ms ease,
+    border-color 280ms ease,
+    box-shadow 280ms ease;
+}
+
+.theme-toggle-track {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(239, 198, 92, 0.28), rgba(78, 184, 176, 0.18));
+}
+
+.theme-toggle-thumb {
+  width: 28px;
+  height: 28px;
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #6b4c00;
+  background: #fff4c7;
+  box-shadow: 0 7px 16px rgba(44, 36, 26, 0.18);
+  transition:
+    transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 280ms ease,
+    color 280ms ease,
+    box-shadow 280ms ease;
+}
+
+.app-shell[data-theme="dark"] .theme-toggle-track {
+  background: linear-gradient(135deg, rgba(78, 184, 176, 0.24), rgba(240, 109, 120, 0.18));
+}
+
+.app-shell[data-theme="dark"] .theme-toggle-thumb {
+  transform: translateX(20px) rotate(18deg);
+  color: #eef5de;
+  background: #30372c;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.36);
+}
+
 .ghost-button,
 .primary-button,
 .tool-button,
@@ -155,9 +324,9 @@ button {
 .small-button,
 .icon-button,
 .panel-tabs button {
-  background: #fffdf7;
+  background: var(--surface-solid);
   color: var(--ink);
-  border-color: rgba(83, 74, 57, 0.16);
+  border-color: var(--border);
 }
 
 .ghost-button,
@@ -167,8 +336,8 @@ button {
 
 .primary-button {
   color: #fffaf0;
-  background: #177e89;
-  border-color: #177e89;
+  background: var(--teal);
+  border-color: var(--teal);
   box-shadow: 0 8px 20px rgba(23, 126, 137, 0.22);
 }
 
@@ -178,9 +347,10 @@ button {
 .small-button:hover,
 .icon-button:hover,
 .panel-tabs button:hover,
-.primary-button:hover {
+.primary-button:hover,
+.theme-toggle:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(44, 36, 26, 0.12);
+  box-shadow: var(--hover-shadow);
 }
 
 .hidden-input {
@@ -198,10 +368,14 @@ button {
 .left-rail,
 .right-panel {
   min-height: 0;
-  border: 1px solid rgba(83, 74, 57, 0.16);
-  background: rgba(255, 250, 240, 0.9);
+  border: 1px solid var(--border);
+  background: var(--surface);
   box-shadow: var(--shadow);
   overflow: auto;
+  transition:
+    background 280ms ease,
+    border-color 280ms ease,
+    box-shadow 280ms ease;
 }
 
 .left-rail {
@@ -222,7 +396,7 @@ button {
 }
 
 .section-label {
-  color: #706754;
+  color: var(--section-text);
   font-size: 12px;
   font-weight: 900;
 }
@@ -260,9 +434,9 @@ button {
   place-items: center;
   margin: 4px auto;
   background:
-    radial-gradient(circle at center, #fffaf0 0 48%, transparent 49%),
+    radial-gradient(circle at center, var(--surface-strong) 0 48%, transparent 49%),
     conic-gradient(var(--coral) 0 20%, var(--amber) 20% 58%, var(--mint) 58% 100%);
-  border: 1px solid rgba(83, 74, 57, 0.16);
+  border: 1px solid var(--border);
 }
 
 .health-ring span {
@@ -292,7 +466,7 @@ button {
   align-items: center;
   padding: 10px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.62);
+  background: color-mix(in srgb, var(--surface-solid) 72%, transparent);
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
@@ -308,12 +482,14 @@ button {
   min-height: 0;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(83, 74, 57, 0.16);
+  border: 1px solid var(--border);
   border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(255, 250, 240, 0.9), rgba(237, 247, 244, 0.88)),
-    #fffaf0;
+  background: var(--canvas-bg);
   box-shadow: var(--shadow);
+  transition:
+    background 280ms ease,
+    border-color 280ms ease,
+    box-shadow 280ms ease;
 }
 
 .canvas-panel .react-flow {
@@ -322,27 +498,27 @@ button {
 }
 
 .react-flow__attribution {
-  background: rgba(255, 250, 240, 0.8);
-  color: #5f665f;
+  background: var(--surface);
+  color: var(--muted);
 }
 
 .react-flow__minimap {
-  border: 1px solid rgba(83, 74, 57, 0.18);
+  border: 1px solid var(--border-strong);
   border-radius: 10px;
   overflow: hidden;
-  background: rgba(255, 250, 240, 0.92);
+  background: var(--minimap-bg);
 }
 
 .react-flow__controls {
-  box-shadow: 0 12px 24px rgba(44, 36, 26, 0.14);
+  box-shadow: var(--hover-shadow);
   border-radius: 10px;
   overflow: hidden;
 }
 
 .react-flow__controls-button {
   border: 0;
-  border-bottom: 1px solid rgba(83, 74, 57, 0.14);
-  background: #fffaf0;
+  border-bottom: 1px solid var(--border);
+  background: var(--control-bg);
   color: var(--ink);
 }
 
@@ -354,8 +530,8 @@ button {
   z-index: 5;
   padding: 10px 14px;
   border-radius: 999px;
-  color: #fffaf0;
-  background: #1e2726;
+  color: var(--app-bg);
+  background: var(--toast-bg);
   box-shadow: 0 12px 28px rgba(30, 39, 38, 0.2);
   font-size: 13px;
   font-weight: 800;
@@ -364,18 +540,22 @@ button {
 .schema-node {
   width: 318px;
   position: relative;
-  border: 1px solid rgba(83, 74, 57, 0.16);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(255, 250, 240, 0.96);
-  box-shadow: 0 18px 38px rgba(44, 36, 26, 0.14);
+  background: var(--node-bg);
+  box-shadow: var(--node-shadow);
   overflow: hidden;
+  transition:
+    background 280ms ease,
+    border-color 280ms ease,
+    box-shadow 280ms ease;
 }
 
 .schema-node.is-selected {
   border-color: var(--teal);
   box-shadow:
     0 0 0 3px rgba(23, 126, 137, 0.18),
-    0 18px 38px rgba(44, 36, 26, 0.16);
+    var(--node-shadow);
 }
 
 .node-accent {
@@ -396,7 +576,7 @@ button {
   align-items: center;
   gap: 10px;
   padding: 12px;
-  border-bottom: 1px solid rgba(83, 74, 57, 0.12);
+  border-bottom: 1px solid var(--border);
 }
 
 .node-icon,
@@ -457,13 +637,13 @@ button {
 }
 
 .node-alert {
-  color: #8f2f32;
-  background: #ffe3df;
+  color: var(--error-ink);
+  background: var(--error-bg);
 }
 
 .node-clean {
-  color: #0d734a;
-  background: #dcf7eb;
+  color: var(--success-ink);
+  background: var(--success-bg);
 }
 
 .field-list {
@@ -487,7 +667,7 @@ button {
 
 .field-row:hover,
 .field-row.is-active {
-  background: rgba(23, 126, 137, 0.08);
+  background: color-mix(in srgb, var(--teal) 12%, transparent);
 }
 
 .field-name {
@@ -502,7 +682,7 @@ button {
 
 .field-name svg {
   flex: 0 0 auto;
-  color: #4f6f72;
+  color: var(--teal);
 }
 
 .field-flags {
@@ -513,8 +693,8 @@ button {
 .field-flags span {
   padding: 2px 4px;
   border-radius: 5px;
-  background: #efe7d2;
-  color: #6a5b38;
+  background: color-mix(in srgb, var(--amber) 18%, var(--surface-solid));
+  color: var(--section-text);
   font-size: 10px;
   font-weight: 900;
 }
@@ -535,8 +715,8 @@ button {
 .field-handle {
   width: 14px;
   height: 14px;
-  border: 2px solid #fffaf0;
-  background: #177e89;
+  border: 2px solid var(--surface-strong);
+  background: var(--teal);
   box-shadow:
     0 0 0 2px rgba(23, 126, 137, 0.16),
     0 4px 10px rgba(30, 39, 38, 0.16);
@@ -570,7 +750,7 @@ button {
 .field-handle:hover,
 .field-handle.connectingfrom,
 .field-handle.connectionindicator {
-  background: #d1495b;
+  background: var(--coral);
   box-shadow:
     0 0 0 4px rgba(209, 73, 91, 0.18),
     0 8px 18px rgba(30, 39, 38, 0.2);
@@ -596,8 +776,8 @@ button {
 .enum-values span {
   padding: 5px 8px;
   border-radius: 999px;
-  background: #fff0bf;
-  color: #775b05;
+  background: color-mix(in srgb, var(--amber) 28%, var(--surface-solid));
+  color: var(--section-text);
   font-size: 12px;
   font-weight: 850;
 }
@@ -605,7 +785,7 @@ button {
 .note-node p {
   margin: 0;
   padding: 12px;
-  color: #514a40;
+  color: var(--muted);
   line-height: 1.45;
   font-size: 13px;
   overflow-wrap: anywhere;
@@ -616,7 +796,7 @@ button {
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   padding: 10px;
-  border-bottom: 1px solid rgba(83, 74, 57, 0.14);
+  border-bottom: 1px solid var(--border);
 }
 
 .panel-tabs button {
@@ -626,8 +806,8 @@ button {
 }
 
 .panel-tabs button.is-active {
-  background: #1e2726;
-  color: #fffaf0;
+  background: var(--ink);
+  color: var(--app-bg);
 }
 
 .inspector,
@@ -672,7 +852,7 @@ button {
 .field-label {
   display: grid;
   gap: 7px;
-  color: #5f665f;
+  color: var(--muted);
   font-size: 12px;
   font-weight: 900;
 }
@@ -683,10 +863,10 @@ button {
 .index-editor input {
   width: 100%;
   min-height: 40px;
-  border: 1px solid rgba(83, 74, 57, 0.18);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 9px 10px;
-  background: #fffdf7;
+  background: var(--surface-solid);
   color: var(--ink);
   outline: none;
   font-weight: 750;
@@ -722,9 +902,9 @@ button {
   align-items: center;
   gap: 8px;
   padding: 8px;
-  border: 1px solid rgba(83, 74, 57, 0.16);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fffdf7;
+  background: var(--surface-solid);
   color: var(--ink);
   font-size: 12px;
   font-weight: 850;
@@ -761,9 +941,9 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  border: 1px solid rgba(83, 74, 57, 0.14);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fffdf7;
+  background: var(--surface-solid);
   color: var(--ink);
   padding: 7px 9px;
   font-size: 13px;
@@ -785,9 +965,9 @@ button {
   display: grid;
   gap: 8px;
   padding: 10px;
-  border: 1px solid rgba(83, 74, 57, 0.14);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.54);
+  background: color-mix(in srgb, var(--surface-solid) 72%, transparent);
 }
 
 .index-field-grid {
@@ -811,8 +991,8 @@ button {
   justify-content: space-between;
   padding: 10px;
   border-radius: 8px;
-  background: #edf7f4;
-  color: #245a5d;
+  background: color-mix(in srgb, var(--teal) 16%, var(--surface-solid));
+  color: var(--teal);
   font-size: 12px;
   font-weight: 900;
 }
@@ -827,15 +1007,15 @@ button {
   min-height: 42px;
   margin-top: 4px;
   color: #fffaf0;
-  background: #b23b48;
-  border-color: #b23b48;
+  background: color-mix(in srgb, var(--coral) 78%, #771d27);
+  border-color: color-mix(in srgb, var(--coral) 78%, #771d27);
 }
 
 .link-danger {
   width: max-content;
   border: 0;
   background: transparent;
-  color: #b23b48;
+  color: var(--coral);
   padding: 2px 0;
   font-size: 12px;
   font-weight: 900;
@@ -857,11 +1037,11 @@ button {
   min-height: 0;
   margin: 0;
   overflow: auto;
-  border: 1px solid rgba(83, 74, 57, 0.16);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 12px;
-  background: #171f1e;
-  color: #f8f1da;
+  background: var(--json-bg);
+  color: var(--json-ink);
   line-height: 1.45;
   font-size: 12px;
 }
@@ -872,8 +1052,8 @@ button {
   gap: 9px;
   border-radius: 8px;
   padding: 10px;
-  background: #fffdf7;
-  border: 1px solid rgba(83, 74, 57, 0.14);
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
   font-size: 13px;
   font-weight: 800;
   line-height: 1.35;
@@ -884,13 +1064,13 @@ button {
 }
 
 .issue-item.error {
-  color: #8f2f32;
-  background: #ffe8e4;
+  color: var(--error-ink);
+  background: var(--error-bg);
 }
 
 .issue-item.warning {
-  color: #765a08;
-  background: #fff2cb;
+  color: var(--warning-ink);
+  background: var(--warning-bg);
 }
 
 .empty-inspector,
@@ -923,7 +1103,7 @@ button {
   border-radius: 18px;
   background:
     linear-gradient(135deg, rgba(23, 126, 137, 0.16), rgba(209, 73, 91, 0.16)),
-    #fffdf7;
+    var(--surface-solid);
   color: var(--teal);
 }
 
@@ -932,7 +1112,7 @@ button {
   display: grid;
   gap: 10px;
   align-content: center;
-  color: #0d734a;
+  color: var(--success-ink);
   font-weight: 850;
 }
 
