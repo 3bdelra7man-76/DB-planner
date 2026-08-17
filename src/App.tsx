@@ -10,6 +10,7 @@ import {
   ReactFlowProvider,
   applyNodeChanges,
   type Connection,
+  ConnectionMode,
   type Edge,
   type Node,
   type NodeChange,
@@ -142,7 +143,14 @@ function TableNode({ data, selected }: NodeProps<TableFlowNode>) {
               }
             }}
           >
-            <Handle type="target" position={Position.Left} id={targetHandleId(field.id)} className="field-handle field-handle-left" />
+            <Handle
+              type="target"
+              position={Position.Left}
+              id={targetHandleId(field.id)}
+              className="field-handle field-handle-left"
+              title={`Link to ${table.name}.${field.name}`}
+              aria-label={`Link to ${table.name}.${field.name}`}
+            />
             <span className="field-name">
               {field.primaryKey ? <KeyRound size={12} /> : field.type === 'relation' ? <Link2 size={12} /> : <CircleDot size={10} />}
               {field.name || 'unnamed'}
@@ -154,7 +162,14 @@ function TableNode({ data, selected }: NodeProps<TableFlowNode>) {
             <span className="type-pill" style={{ '--type-color': TYPE_COLORS[field.type] } as CSSProperties}>
               {field.type}
             </span>
-            <Handle type="source" position={Position.Right} id={sourceHandleId(field.id)} className="field-handle field-handle-right" />
+            <Handle
+              type="source"
+              position={Position.Right}
+              id={sourceHandleId(field.id)}
+              className="field-handle field-handle-right"
+              title={`Link from ${table.name}.${field.name}`}
+              aria-label={`Link from ${table.name}.${field.name}`}
+            />
           </div>
         ))}
       </div>
@@ -460,6 +475,7 @@ function PlannerApp() {
       const fromTable = current.tables.find((table) => table.id === connection.source);
       const toTable = current.tables.find((table) => table.id === connection.target);
       const fromField = fromTable?.fields.find((field) => field.id === sourceFieldId);
+      const toField = toTable?.fields.find((field) => field.id === targetFieldId);
 
       const relation: SchemaRelation = {
         id: createId('rel'),
@@ -467,7 +483,7 @@ function PlannerApp() {
         to: { tableId: connection.target, fieldId: targetFieldId },
         cardinality: 'many-to-one',
         onDelete: 'restrict',
-        label: fromField && toTable ? `${fromField.name} -> ${toTable.name}` : 'relationship',
+        label: fromField && toField ? `${fromField.name} -> ${toField.name}` : 'relationship',
       };
 
       setSelection({ kind: 'relation', relationId: relation.id });
@@ -713,6 +729,7 @@ function PlannerApp() {
             minZoom={0.3}
             maxZoom={1.7}
             connectOnClick={false}
+            connectionMode={ConnectionMode.Loose}
             deleteKeyCode={null}
             nodeDragThreshold={4}
           >

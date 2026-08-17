@@ -479,7 +479,7 @@ button {
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 7px;
-  padding: 6px 7px;
+  padding: 6px 30px;
   border-radius: 8px;
   color: var(--ink);
   outline: none;
@@ -533,19 +533,57 @@ button {
 }
 
 .field-handle {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border: 2px solid #fffaf0;
-  background: var(--teal);
+  background: #177e89;
+  box-shadow:
+    0 0 0 2px rgba(23, 126, 137, 0.16),
+    0 4px 10px rgba(30, 39, 38, 0.16);
+  opacity: 0.95;
   top: 50%;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
 }
 
 .field-handle-left {
-  left: -13px;
+  left: 15px;
+  transform: translate(-50%, -50%);
 }
 
 .field-handle-right {
-  right: -13px;
+  right: 15px;
+  transform: translate(50%, -50%);
+}
+
+.field-handle::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+}
+
+.field-row:hover .field-handle,
+.field-row.is-active .field-handle,
+.field-handle:hover,
+.field-handle.connectingfrom,
+.field-handle.connectionindicator {
+  background: #d1495b;
+  box-shadow:
+    0 0 0 4px rgba(209, 73, 91, 0.18),
+    0 8px 18px rgba(30, 39, 38, 0.2);
+}
+
+.field-handle:hover,
+.field-handle.connectingfrom {
+  transform: translate(-50%, -50%) scale(1.18);
+}
+
+.field-handle-right:hover,
+.field-handle-right.connectingfrom {
+  transform: translate(50%, -50%) scale(1.18);
 }
 
 .enum-values {
