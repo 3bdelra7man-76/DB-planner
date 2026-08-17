@@ -37,17 +37,17 @@ export const CARDINALITIES: RelationCardinality[] = [
 export const DELETE_ACTIONS: DeleteAction[] = ['restrict', 'cascade', 'set-null', 'no-action'];
 
 export const TYPE_COLORS: Record<FieldType, string> = {
-  uuid: '#2f70c6',
-  string: '#177e89',
-  text: '#7161ef',
-  integer: '#c65f28',
-  decimal: '#9b5de5',
-  boolean: '#108b5a',
-  date: '#c43d6b',
-  datetime: '#8a5a44',
-  json: '#586f7c',
-  enum: '#b08900',
-  relation: '#d1495b',
+  uuid: '#355cff',
+  string: '#2563eb',
+  text: '#7c3aed',
+  integer: '#9333ea',
+  decimal: '#c026d3',
+  boolean: '#0891b2',
+  date: '#be185d',
+  datetime: '#4f46e5',
+  json: '#0ea5e9',
+  enum: '#b45309',
+  relation: '#9d174d',
 };
 
 const fieldTypeSet = new Set(FIELD_TYPES);

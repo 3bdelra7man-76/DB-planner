@@ -371,16 +371,16 @@ function PlannerApp() {
         animated: isSelected,
         markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
         style: {
-          stroke: isSelected ? (isDarkTheme ? '#f06d78' : '#d1495b') : isDarkTheme ? '#4eb8b0' : '#276f86',
+          stroke: isSelected ? (isDarkTheme ? '#d9468f' : '#9d174d') : isDarkTheme ? '#6d8cff' : '#355cff',
           strokeWidth: isSelected ? 3 : 2,
         },
         labelStyle: {
-          fill: isDarkTheme ? '#f4ead6' : '#1f2d2e',
+          fill: isDarkTheme ? '#f8fbff' : '#111827',
           fontWeight: 700,
           fontSize: 12,
         },
         labelBgStyle: {
-          fill: isDarkTheme ? '#20241f' : '#fffaf0',
+          fill: isDarkTheme ? '#111936' : '#ffffff',
           fillOpacity: 0.92,
         },
       };
@@ -753,16 +753,16 @@ function PlannerApp() {
             deleteKeyCode={null}
             nodeDragThreshold={4}
           >
-            <Background color={isDarkTheme ? '#3a362d' : '#d9d0bd'} gap={22} size={1.2} />
+            <Background color={isDarkTheme ? '#263053' : '#d8ddf0'} gap={22} size={1.2} />
             <MiniMap
               pannable
               zoomable
               nodeBorderRadius={8}
               nodeStrokeWidth={2}
               nodeColor={(node) => {
-                if (node.type === 'enumNode') return '#e2b844';
-                if (node.type === 'noteNode') return '#e8795d';
-                return '#5bb7a8';
+                if (node.type === 'enumNode') return isDarkTheme ? '#a78bfa' : '#7c3aed';
+                if (node.type === 'noteNode') return isDarkTheme ? '#d9468f' : '#9d174d';
+                return isDarkTheme ? '#6d8cff' : '#355cff';
               }}
             />
             <Controls position="bottom-left" showInteractive={false} />
