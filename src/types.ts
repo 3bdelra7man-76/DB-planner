@@ -25,6 +25,7 @@ export type SchemaField = {
   name: string;
   type: FieldType;
   primaryKey: boolean;
+  foreignKey: boolean;
   required: boolean;
   unique: boolean;
   default: string;

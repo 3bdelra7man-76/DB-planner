@@ -46,6 +46,10 @@
   --warning-ink: #9a5b00;
   --error-bg: #ffe7ef;
   --error-ink: #9d174d;
+  --pk-accent: #3b82f6;
+  --pk-ink: #1d4ed8;
+  --fk-accent: #eab308;
+  --fk-ink: #8a5a00;
 }
 
 .app-shell[data-theme="dark"] {
@@ -89,6 +93,10 @@
   --warning-ink: #ffd27c;
   --error-bg: rgba(217, 70, 143, 0.16);
   --error-ink: #ff8fc2;
+  --pk-accent: #60a5fa;
+  --pk-ink: #bfdbfe;
+  --fk-accent: #facc15;
+  --fk-ink: #fde68a;
 }
 
 * {
@@ -665,13 +673,59 @@ button {
   gap: 7px;
   padding: 6px 30px;
   border-radius: 8px;
+  border: 1px solid transparent;
   color: var(--ink);
   outline: none;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.field-row.is-primary-key {
+  background: color-mix(in srgb, var(--pk-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--pk-accent) 28%, transparent);
+}
+
+.field-row.is-foreign-key {
+  background: color-mix(in srgb, var(--fk-accent) 20%, transparent);
+  border-color: color-mix(in srgb, var(--fk-accent) 34%, transparent);
+}
+
+.field-row.is-primary-key.is-foreign-key {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--pk-accent) 15%, transparent),
+    color-mix(in srgb, var(--fk-accent) 20%, transparent)
+  );
+  border-color: color-mix(in srgb, var(--violet) 26%, transparent);
 }
 
 .field-row:hover,
 .field-row.is-active {
   background: color-mix(in srgb, var(--teal) 12%, transparent);
+}
+
+.field-row.is-primary-key:hover,
+.field-row.is-primary-key.is-active {
+  background: color-mix(in srgb, var(--pk-accent) 22%, transparent);
+  border-color: color-mix(in srgb, var(--pk-accent) 42%, transparent);
+}
+
+.field-row.is-foreign-key:hover,
+.field-row.is-foreign-key.is-active {
+  background: color-mix(in srgb, var(--fk-accent) 28%, transparent);
+  border-color: color-mix(in srgb, var(--fk-accent) 46%, transparent);
+}
+
+.field-row.is-primary-key.is-foreign-key:hover,
+.field-row.is-primary-key.is-foreign-key.is-active {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--pk-accent) 24%, transparent),
+    color-mix(in srgb, var(--fk-accent) 30%, transparent)
+  );
+  border-color: color-mix(in srgb, var(--violet) 44%, transparent);
 }
 
 .field-name {
@@ -689,6 +743,18 @@ button {
   color: var(--teal);
 }
 
+.field-row.is-primary-key .field-name svg {
+  color: var(--pk-accent);
+}
+
+.field-row.is-foreign-key .field-name svg {
+  color: var(--fk-ink);
+}
+
+.field-row.is-primary-key.is-foreign-key .field-name svg {
+  color: var(--pk-accent);
+}
+
 .field-flags {
   display: inline-flex;
   gap: 3px;
@@ -701,6 +767,16 @@ button {
   color: var(--section-text);
   font-size: 10px;
   font-weight: 900;
+}
+
+.field-flags .flag-primary {
+  background: color-mix(in srgb, var(--pk-accent) 18%, var(--surface-solid));
+  color: var(--pk-ink);
+}
+
+.field-flags .flag-foreign {
+  background: color-mix(in srgb, var(--fk-accent) 28%, var(--surface-solid));
+  color: var(--fk-ink);
 }
 
 .type-pill {

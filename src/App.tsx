@@ -133,7 +133,7 @@ function TableNode({ data, selected }: NodeProps<TableFlowNode>) {
         {table.fields.map((field) => (
           <div
             key={field.id}
-            className={`field-row nodrag nopan ${data.selectedFieldId === field.id ? 'is-active' : ''}`}
+            className={`field-row nodrag nopan ${field.primaryKey ? 'is-primary-key' : ''} ${field.foreignKey ? 'is-foreign-key' : ''} ${data.selectedFieldId === field.id ? 'is-active' : ''}`}
             role="button"
             tabIndex={0}
             onClick={(event) => {
@@ -156,10 +156,12 @@ function TableNode({ data, selected }: NodeProps<TableFlowNode>) {
               aria-label={`Link to ${table.name}.${field.name}`}
             />
             <span className="field-name">
-              {field.primaryKey ? <KeyRound size={12} /> : field.type === 'relation' ? <Link2 size={12} /> : <CircleDot size={10} />}
+              {field.primaryKey ? <KeyRound size={12} /> : field.foreignKey || field.type === 'relation' ? <Link2 size={12} /> : <CircleDot size={10} />}
               {field.name || 'unnamed'}
             </span>
             <span className="field-flags">
+              {field.primaryKey ? <span className="flag-primary" title="Primary key">PK</span> : null}
+              {field.foreignKey ? <span className="flag-foreign" title="Foreign key">FK</span> : null}
               {field.required ? <span title="Required">NN</span> : null}
               {field.unique ? <span title="Unique">UQ</span> : null}
             </span>
@@ -459,7 +461,10 @@ function PlannerApp() {
       return;
     }
 
-    if (connection.source === connection.target && sourceFieldId === targetFieldId) {
+    const sourceTableId = connection.source;
+    const targetTableId = connection.target;
+
+    if (sourceTableId === targetTableId && sourceFieldId === targetFieldId) {
       setNotice('Pick two different fields for a relationship.');
       return;
     }
@@ -467,9 +472,9 @@ function PlannerApp() {
     updateSchema((current) => {
       const duplicate = current.relations.some(
         (relation) =>
-          relation.from.tableId === connection.source &&
+          relation.from.tableId === sourceTableId &&
           relation.from.fieldId === sourceFieldId &&
-          relation.to.tableId === connection.target &&
+          relation.to.tableId === targetTableId &&
           relation.to.fieldId === targetFieldId,
       );
 
@@ -478,15 +483,15 @@ function PlannerApp() {
         return current;
       }
 
-      const fromTable = current.tables.find((table) => table.id === connection.source);
-      const toTable = current.tables.find((table) => table.id === connection.target);
+      const fromTable = current.tables.find((table) => table.id === sourceTableId);
+      const toTable = current.tables.find((table) => table.id === targetTableId);
       const fromField = fromTable?.fields.find((field) => field.id === sourceFieldId);
       const toField = toTable?.fields.find((field) => field.id === targetFieldId);
 
       const relation: SchemaRelation = {
         id: createId('rel'),
-        from: { tableId: connection.source, fieldId: sourceFieldId },
-        to: { tableId: connection.target, fieldId: targetFieldId },
+        from: { tableId: sourceTableId, fieldId: sourceFieldId },
+        to: { tableId: targetTableId, fieldId: targetFieldId },
         cardinality: 'many-to-one',
         onDelete: 'restrict',
         label: fromField && toField ? `${fromField.name} -> ${toField.name}` : 'relationship',
@@ -494,7 +499,18 @@ function PlannerApp() {
 
       setSelection({ kind: 'relation', relationId: relation.id });
       setPanelTab('inspect');
-      return { ...current, relations: [...current.relations, relation] };
+      return {
+        ...current,
+        tables: current.tables.map((table) =>
+          table.id === sourceTableId
+            ? {
+                ...table,
+                fields: table.fields.map((field) => (field.id === sourceFieldId ? { ...field, foreignKey: true } : field)),
+              }
+            : table,
+        ),
+        relations: [...current.relations, relation],
+      };
     });
   }, [updateSchema]);
 
@@ -1068,6 +1084,7 @@ function FieldInspector({
           checked={field.primaryKey}
           onChange={(checked) => patchField({ primaryKey: checked, required: checked ? true : field.required, unique: checked ? true : field.unique })}
         />
+        <Toggle label="Foreign key" checked={field.foreignKey} onChange={(checked) => patchField({ foreignKey: checked })} />
       </div>
       <FieldLabel label="Default">
         <input value={field.default} placeholder="none" onChange={(event) => patchField({ default: event.target.value })} />
