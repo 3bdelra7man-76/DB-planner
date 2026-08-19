@@ -18,8 +18,11 @@ import {
   type NodeTypes,
 } from '@xyflow/react';
 import {
+  Activity,
   AlertTriangle,
   Braces,
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2,
   CircleDot,
   Clipboard,
@@ -336,6 +339,7 @@ function PlannerApp() {
   const [theme, setTheme] = usePersistentTheme();
   const [selection, setSelection] = useState<Selection>({ kind: 'canvas' });
   const [panelTab, setPanelTab] = useState<PanelTab>('inspect');
+  const [isLeftRailCollapsed, setIsLeftRailCollapsed] = useState(false);
   const [notice, setNotice] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -516,6 +520,14 @@ function PlannerApp() {
 
   const selected = useSelectedEntity(schema, selection);
   const issueCounts = getIssueCounts(issues);
+  const healthTone = issueCounts.errors > 0 ? 'danger' : issueCounts.warnings > 0 ? 'warning' : 'good';
+  const healthLabel = issueCounts.errors > 0 ? 'Needs fixes' : issueCounts.warnings > 0 ? 'Review' : 'Clean';
+  const healthMessage =
+    issueCounts.errors > 0
+      ? `${issueCounts.errors} error${issueCounts.errors === 1 ? '' : 's'} need attention.`
+      : issueCounts.warnings > 0
+        ? `${issueCounts.warnings} warning${issueCounts.warnings === 1 ? '' : 's'} to review.`
+        : 'No validation issues.';
 
   const addTable = useCallback(() => {
     const count = schema.tables.length;
@@ -680,59 +692,109 @@ function PlannerApp() {
         </div>
       </header>
 
-      <main className="planner-layout">
+      <main className={`planner-layout ${isLeftRailCollapsed ? 'is-left-rail-collapsed' : ''}`}>
         <aside className="left-rail">
-          <div className="rail-section">
-            <span className="section-label">Create</span>
-            <button type="button" className="tool-button" onClick={addTable}>
+          <div className="rail-header">
+            <span className="section-label">Workspace</span>
+            <button
+              type="button"
+              className="icon-button rail-toggle"
+              title={isLeftRailCollapsed ? 'Open sidebar' : 'Collapse sidebar'}
+              aria-label={isLeftRailCollapsed ? 'Open sidebar' : 'Collapse sidebar'}
+              aria-controls="left-rail-content"
+              aria-expanded={!isLeftRailCollapsed}
+              onClick={() => setIsLeftRailCollapsed((current) => !current)}
+            >
+              {isLeftRailCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
+          </div>
+
+          <div className="rail-mini-actions" aria-hidden={!isLeftRailCollapsed}>
+            <button type="button" className="icon-button" title="Add table" aria-label="Add table" onClick={addTable}>
               <Table2 size={18} />
-              Table
             </button>
-            <button type="button" className="tool-button" onClick={addEnumNode}>
+            <button type="button" className="icon-button" title="Add enum" aria-label="Add enum" onClick={addEnumNode}>
               <ListChecks size={18} />
-              Enum
             </button>
-            <button type="button" className="tool-button" onClick={addNoteNode}>
+            <button type="button" className="icon-button" title="Add note" aria-label="Add note" onClick={addNoteNode}>
               <Braces size={18} />
-              Note
             </button>
-          </div>
-
-          <div className="rail-section">
-            <span className="section-label">Templates</span>
-            <button type="button" className="template-button" onClick={() => replaceSchema(createTemplateSchema('auth'))}>
-              <Sparkles size={16} />
-              Auth
-            </button>
-            <button type="button" className="template-button" onClick={() => replaceSchema(createTemplateSchema('commerce'))}>
-              <Grid3X3 size={16} />
-              Shop
-            </button>
-            <button type="button" className="template-button" onClick={() => replaceSchema(createTemplateSchema('content'))}>
-              <Rows3 size={16} />
-              CMS
-            </button>
-          </div>
-
-          <div className="schema-health">
-            <span className="section-label">Health</span>
-            <div className="health-ring">
-              <span>{issueCounts.errors}</span>
-              <small>errors</small>
+            <div
+              className={`icon-button health-mini is-${healthTone}`}
+              title={`${healthLabel}: ${issueCounts.errors} errors, ${issueCounts.warnings} warnings`}
+              aria-label={`${healthLabel}: ${issueCounts.errors} errors, ${issueCounts.warnings} warnings`}
+              role="status"
+            >
+              <Activity size={18} />
             </div>
-            <div className="health-grid">
-              <span>
-                <strong>{schema.tables.length}</strong>
-                tables
-              </span>
-              <span>
-                <strong>{schema.relations.length}</strong>
-                links
-              </span>
-              <span>
-                <strong>{issueCounts.warnings}</strong>
-                warnings
-              </span>
+          </div>
+
+          <div id="left-rail-content" className="rail-content" aria-hidden={isLeftRailCollapsed}>
+            <div className="rail-section">
+              <span className="section-label">Create</span>
+              <button type="button" className="tool-button" onClick={addTable}>
+                <Table2 size={18} />
+                Table
+              </button>
+              <button type="button" className="tool-button" onClick={addEnumNode}>
+                <ListChecks size={18} />
+                Enum
+              </button>
+              <button type="button" className="tool-button" onClick={addNoteNode}>
+                <Braces size={18} />
+                Note
+              </button>
+            </div>
+
+            <div className="rail-section">
+              <span className="section-label">Templates</span>
+              <button type="button" className="template-button" onClick={() => replaceSchema(createTemplateSchema('auth'))}>
+                <Sparkles size={16} />
+                Auth
+              </button>
+              <button type="button" className="template-button" onClick={() => replaceSchema(createTemplateSchema('commerce'))}>
+                <Grid3X3 size={16} />
+                Shop
+              </button>
+              <button type="button" className="template-button" onClick={() => replaceSchema(createTemplateSchema('content'))}>
+                <Rows3 size={16} />
+                CMS
+              </button>
+            </div>
+
+            <div className={`schema-health is-${healthTone}`}>
+              <span className="section-label">Health</span>
+              <div className="health-card">
+                <div className="health-card-top">
+                  <span>
+                    <Activity size={14} />
+                    Status
+                  </span>
+                  <strong>{healthLabel}</strong>
+                </div>
+                <div className="health-signal" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <p>{healthMessage}</p>
+              </div>
+              <div className="health-grid">
+                <span>
+                  <strong>{schema.tables.length}</strong>
+                  tables
+                </span>
+                <span>
+                  <strong>{schema.relations.length}</strong>
+                  links
+                </span>
+                <span>
+                  <strong>{issueCounts.warnings}</strong>
+                  warnings
+                </span>
+              </div>
             </div>
           </div>
         </aside>

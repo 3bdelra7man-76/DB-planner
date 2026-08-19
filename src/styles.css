@@ -135,10 +135,16 @@ button {
 .small-button,
 .danger-button,
 .icon-button,
+.rail-toggle,
+.rail-content,
+.rail-mini-actions,
 .panel-tabs button,
 .left-rail,
 .right-panel,
 .canvas-panel,
+.health-card,
+.health-signal span,
+.health-mini,
 .schema-node,
 .node-header,
 .field-row,
@@ -375,6 +381,11 @@ button {
   grid-template-columns: 176px minmax(420px, 1fr) 384px;
   gap: 12px;
   padding: 12px;
+  transition: grid-template-columns 260ms ease;
+}
+
+.planner-layout.is-left-rail-collapsed {
+  grid-template-columns: 64px minmax(420px, 1fr) 384px;
 }
 
 .left-rail,
@@ -383,7 +394,7 @@ button {
   border: 1px solid var(--border);
   background: var(--surface);
   box-shadow: var(--shadow);
-  overflow: auto;
+  overflow: hidden;
   transition:
     background 280ms ease,
     border-color 280ms ease,
@@ -392,7 +403,99 @@ button {
 
 .left-rail {
   border-radius: 18px;
-  padding: 14px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+}
+
+.rail-header {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rail-toggle {
+  width: 38px;
+  min-width: 38px;
+  padding: 0;
+  flex: 0 0 auto;
+}
+
+.rail-toggle svg {
+  transition: transform 180ms ease;
+}
+
+.rail-toggle:hover svg {
+  transform: translateX(-1px);
+}
+
+.rail-content {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  overflow: auto;
+}
+
+.rail-mini-actions {
+  display: none;
+  align-content: start;
+  justify-items: center;
+  gap: 8px;
+}
+
+.rail-mini-actions .icon-button,
+.health-mini {
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0;
+  border-radius: 12px;
+}
+
+.planner-layout.is-left-rail-collapsed .left-rail {
+  padding: 10px;
+}
+
+.planner-layout.is-left-rail-collapsed .rail-header {
+  justify-content: center;
+}
+
+.planner-layout.is-left-rail-collapsed .rail-header .section-label,
+.planner-layout.is-left-rail-collapsed .rail-content {
+  display: none;
+}
+
+.planner-layout.is-left-rail-collapsed .rail-toggle:hover svg {
+  transform: translateX(1px);
+}
+
+.planner-layout.is-left-rail-collapsed .rail-mini-actions {
+  display: grid;
+}
+
+.health-mini {
+  position: relative;
+  color: var(--health-ink, var(--success-ink));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--health-accent, var(--mint)) 18%, var(--surface-solid)), var(--surface-solid));
+  border-color: color-mix(in srgb, var(--health-accent, var(--mint)) 34%, var(--border));
+  overflow: hidden;
+}
+
+.health-mini::after {
+  content: "";
+  width: 22px;
+  height: 3px;
+  position: absolute;
+  right: -5px;
+  bottom: 8px;
+  border-radius: 999px;
+  background: var(--health-accent, var(--mint));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--health-accent, var(--mint)) 46%, transparent);
+  animation: healthSweep 2.8s ease-in-out infinite;
 }
 
 .right-panel {
@@ -433,50 +536,146 @@ button {
 }
 
 .schema-health {
+  --health-accent: var(--mint);
+  --health-ink: var(--success-ink);
   display: grid;
-  gap: 12px;
+  gap: 10px;
   padding-top: 2px;
 }
 
-.health-ring {
-  width: 112px;
-  height: 112px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  margin: 4px auto;
-  background:
-    radial-gradient(circle at center, var(--surface-strong) 0 48%, transparent 49%),
-    conic-gradient(var(--coral) 0 20%, var(--amber) 20% 58%, var(--mint) 58% 100%);
-  border: 1px solid var(--border);
+.schema-health.is-warning,
+.health-mini.is-warning {
+  --health-accent: var(--amber);
+  --health-ink: var(--warning-ink);
 }
 
-.health-ring span {
-  display: block;
-  font-size: 30px;
-  line-height: 1;
+.schema-health.is-danger,
+.health-mini.is-danger {
+  --health-accent: var(--coral);
+  --health-ink: var(--error-ink);
+}
+
+.schema-health.is-good,
+.health-mini.is-good {
+  --health-accent: var(--mint);
+  --health-ink: var(--success-ink);
+}
+
+.health-card {
+  position: relative;
+  overflow: hidden;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--health-accent) 26%, var(--border));
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--health-accent) 14%, transparent), transparent 58%),
+    color-mix(in srgb, var(--surface-solid) 76%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 14px 28px color-mix(in srgb, var(--health-accent) 13%, transparent);
+}
+
+.health-card::before {
+  content: "";
+  width: 64px;
+  position: absolute;
+  inset: -28px auto -28px -84px;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--health-accent) 18%, transparent), transparent);
+  animation: healthSweep 4.6s ease-in-out infinite;
+}
+
+.health-card > * {
+  position: relative;
+}
+
+.health-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.health-card-top span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.health-card-top strong {
+  color: var(--health-ink);
+  font-size: 15px;
   font-weight: 950;
 }
 
-.health-ring small {
-  display: block;
-  margin-top: -22px;
+.health-signal {
+  height: 42px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: end;
+  gap: 5px;
+  padding: 8px 0 4px;
+}
+
+.health-signal span {
+  min-width: 0;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--health-accent) 84%, white), var(--health-accent));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--health-accent) 22%, transparent);
+  transform-origin: bottom;
+  animation: healthBar 1.8s ease-in-out infinite;
+}
+
+.health-signal span:nth-child(1) {
+  height: 34%;
+  animation-delay: 0ms;
+}
+
+.health-signal span:nth-child(2) {
+  height: 62%;
+  animation-delay: 120ms;
+}
+
+.health-signal span:nth-child(3) {
+  height: 46%;
+  animation-delay: 240ms;
+}
+
+.health-signal span:nth-child(4) {
+  height: 82%;
+  animation-delay: 360ms;
+}
+
+.health-signal span:nth-child(5) {
+  height: 55%;
+  animation-delay: 480ms;
+}
+
+.health-card p {
+  margin: 0;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 800;
+  line-height: 1.35;
+  font-weight: 750;
 }
 
 .health-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 8px;
+  gap: 7px;
 }
 
 .health-grid span {
+  position: relative;
+  overflow: hidden;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 9px 10px 9px 13px;
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface-solid) 72%, transparent);
   color: var(--muted);
@@ -484,9 +683,46 @@ button {
   font-weight: 800;
 }
 
+.health-grid span::before {
+  content: "";
+  width: 3px;
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 6px;
+  border-radius: 999px;
+  background: var(--health-accent);
+}
+
 .health-grid strong {
   color: var(--ink);
   font-size: 18px;
+}
+
+@keyframes healthBar {
+  0%,
+  100% {
+    transform: scaleY(0.72);
+    opacity: 0.72;
+  }
+
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes healthSweep {
+  0%,
+  100% {
+    transform: translateX(0) rotate(18deg);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: translateX(190px) rotate(18deg);
+    opacity: 0.72;
+  }
 }
 
 .canvas-panel {
@@ -1227,6 +1463,10 @@ button {
     grid-template-rows: minmax(620px, 68vh) minmax(420px, auto);
   }
 
+  .planner-layout.is-left-rail-collapsed {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
   .right-panel {
     grid-column: 1 / -1;
     min-height: 420px;
@@ -1249,8 +1489,20 @@ button {
     grid-template-rows: auto minmax(560px, 66vh) minmax(480px, auto);
   }
 
+  .planner-layout.is-left-rail-collapsed {
+    grid-template-columns: 1fr;
+    grid-template-rows: 64px minmax(560px, 66vh) minmax(480px, auto);
+  }
+
   .left-rail {
     display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 12px;
+  }
+
+  .rail-content {
+    overflow: visible;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
   }
@@ -1264,17 +1516,24 @@ button {
     align-content: start;
   }
 
-  .health-ring {
-    width: 86px;
-    height: 86px;
+  .health-card {
+    padding: 10px;
   }
 
-  .health-ring span {
-    font-size: 24px;
+  .health-signal {
+    height: 36px;
   }
 
-  .health-ring small {
-    margin-top: -16px;
+  .planner-layout.is-left-rail-collapsed .left-rail {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .planner-layout.is-left-rail-collapsed .rail-mini-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
   }
 
   .toggle-grid,
@@ -1301,6 +1560,10 @@ button {
   }
 
   .left-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .rail-content {
     grid-template-columns: 1fr;
   }
 
