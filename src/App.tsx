@@ -1429,6 +1429,22 @@ function EnumInspector({
   updateSchema: (updater: (current: SchemaDocument) => SchemaDocument) => void;
   setSelection: (selection: Selection) => void;
 }) {
+  const addValue = () => {
+    const name = uniqueName('new_value', schemaEnum.values);
+    patchEnum(updateSchema, schemaEnum.id, { values: [...schemaEnum.values, name] });
+  };
+  const updateValue = (index: number, nextValue: string) => {
+    const values = schemaEnum.values.map((value, valueIndex) => (valueIndex === index ? nextValue : value));
+    patchEnum(updateSchema, schemaEnum.id, { values });
+  };
+  const commitValue = (index: number) => {
+    const values = schemaEnum.values.map((value, valueIndex) => (valueIndex === index ? value.trim() : value)).filter(Boolean);
+    patchEnum(updateSchema, schemaEnum.id, { values });
+  };
+  const removeValue = (index: number) => {
+    patchEnum(updateSchema, schemaEnum.id, { values: schemaEnum.values.filter((_, valueIndex) => valueIndex !== index) });
+  };
+
   return (
     <div className="inspector">
       <InspectorHeading icon={<ListChecks size={20} />} eyebrow="Enum" title={schemaEnum.name || 'Untitled enum'} />
@@ -1436,18 +1452,32 @@ function EnumInspector({
         <input value={schemaEnum.name} onChange={(event) => patchEnum(updateSchema, schemaEnum.id, { name: event.target.value })} />
       </FieldLabel>
       <FieldLabel label="Values">
-        <textarea
-          className="tall-textarea"
-          value={schemaEnum.values.join('\n')}
-          onChange={(event) =>
-            patchEnum(updateSchema, schemaEnum.id, {
-              values: event.target.value
-                .split('\n')
-                .map((value) => value.trim())
-                .filter(Boolean),
-            })
-          }
-        />
+        <div className="enum-value-editor">
+          <div className="enum-value-chip-grid">
+            {schemaEnum.values.map((value, index) => (
+              <div key={`${schemaEnum.id}-${index}`} className="enum-value-chip">
+                <input
+                  value={value}
+                  aria-label={`Enum value ${index + 1}`}
+                  onChange={(event) => updateValue(index, event.target.value)}
+                  onBlur={() => commitValue(index)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.currentTarget.blur();
+                    }
+                  }}
+                />
+                <button type="button" className="enum-value-remove" title="Remove value" aria-label="Remove value" onClick={() => removeValue(index)}>
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+            <button type="button" className="enum-value-add" onClick={addValue}>
+              <Plus size={14} />
+              Add value
+            </button>
+          </div>
+        </div>
       </FieldLabel>
       <button type="button" className="danger-button" onClick={() => deleteEnum(updateSchema, schemaEnum.id, setSelection)}>
         <Trash2 size={16} />

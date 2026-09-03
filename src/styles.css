@@ -159,6 +159,10 @@ button {
 .field-label input,
 .field-label select,
 .field-label textarea,
+.enum-value-chip,
+.enum-value-chip input,
+.enum-value-add,
+.enum-value-remove,
 .toggle-control,
 .field-picker-list button,
 .index-editor,
@@ -1371,9 +1375,86 @@ button {
 .field-label input:focus,
 .field-label select:focus,
 .field-label textarea:focus,
+.enum-value-chip:focus-within,
 .index-editor input:focus {
   border-color: var(--teal);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 22%, transparent);
+}
+
+.enum-value-editor {
+  display: grid;
+  gap: 8px;
+}
+
+.enum-value-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.enum-value-chip {
+  min-width: 118px;
+  max-width: 100%;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, var(--amber) 34%, var(--border));
+  border-radius: 999px;
+  padding: 4px 5px 4px 10px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--amber) 18%, transparent), transparent 58%),
+    var(--surface-solid);
+}
+
+.enum-value-chip input {
+  min-width: 54px;
+  width: 112px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.enum-value-remove,
+.enum-value-add {
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.enum-value-remove {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  padding: 0;
+  background: color-mix(in srgb, var(--coral) 10%, transparent);
+  color: var(--coral);
+}
+
+.enum-value-remove:hover {
+  background: color-mix(in srgb, var(--coral) 20%, transparent);
+}
+
+.enum-value-add {
+  min-height: 38px;
+  border-radius: 999px;
+  gap: 6px;
+  padding: 0 12px;
+  background: color-mix(in srgb, var(--violet) 12%, var(--surface-solid));
+  border-color: color-mix(in srgb, var(--violet) 26%, var(--border));
+  color: var(--violet);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.enum-value-add:hover {
+  background: color-mix(in srgb, var(--violet) 18%, var(--surface-solid));
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--violet) 14%, transparent);
 }
 
 .toggle-grid {
