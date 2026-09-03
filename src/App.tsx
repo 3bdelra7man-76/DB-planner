@@ -783,7 +783,7 @@ function PlannerApp() {
               Save Template
             </button>
           ) : null}
-          <button type="button" className="primary-button" title="Export JSON" onClick={exportJson}>
+          <button type="button" className="primary-button export-button" title="Export JSON" onClick={exportJson}>
             <Download size={17} />
             Export JSON
           </button>

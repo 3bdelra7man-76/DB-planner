@@ -40,6 +40,11 @@
   --json-bg: #0b1024;
   --json-ink: #f8fbff;
   --toast-bg: #111827;
+  --identity-bg: #101827;
+  --identity-ink: #ffffff;
+  --identity-border: rgba(255, 255, 255, 0.16);
+  --identity-glow: 0 16px 34px rgba(16, 24, 39, 0.24), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --identity-glow-hover: 0 18px 38px rgba(16, 24, 39, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   --success-bg: #e7f9f8;
   --success-ink: #087d82;
   --warning-bg: #fff6db;
@@ -87,6 +92,11 @@
   --json-bg: #050816;
   --json-ink: #f8fbff;
   --toast-bg: #f8fbff;
+  --identity-bg: #0a1022;
+  --identity-ink: #f8fbff;
+  --identity-border: rgba(248, 251, 255, 0.16);
+  --identity-glow: 0 16px 34px rgba(0, 0, 0, 0.34), 0 0 24px rgba(109, 140, 255, 0.1), inset 0 0 0 1px rgba(248, 251, 255, 0.05);
+  --identity-glow-hover: 0 18px 40px rgba(0, 0, 0, 0.42), 0 0 28px rgba(109, 140, 255, 0.14), inset 0 0 0 1px rgba(248, 251, 255, 0.08);
   --success-bg: rgba(38, 215, 223, 0.14);
   --success-ink: #5ce8ee;
   --warning-bg: rgba(248, 184, 78, 0.15);
@@ -127,6 +137,8 @@ button {
 }
 
 .topbar,
+.brand-mark,
+.brand-mark svg,
 .brand-block input,
 .ghost-button,
 .primary-button,
@@ -226,12 +238,17 @@ button {
   width: 48px;
   height: 48px;
   border-radius: 14px;
+  border: 1px solid var(--identity-border);
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #355cff, #7c3aed 48%, #9d174d);
-  color: #ffffff;
-  box-shadow: 0 16px 34px rgba(53, 92, 255, 0.28);
+  background: var(--identity-bg);
+  color: var(--identity-ink);
+  box-shadow: var(--identity-glow);
   flex: 0 0 auto;
+}
+
+.brand-mark svg {
+  filter: drop-shadow(0 0 10px rgba(248, 251, 255, 0.16));
 }
 
 .brand-block span {
@@ -370,6 +387,18 @@ button {
   box-shadow: 0 14px 28px rgba(53, 92, 255, 0.24);
 }
 
+.export-button {
+  color: var(--identity-ink);
+  background: var(--identity-bg);
+  border-color: var(--identity-border);
+  box-shadow: var(--identity-glow);
+}
+
+.export-button svg {
+  color: var(--identity-ink);
+  filter: drop-shadow(0 0 10px rgba(248, 251, 255, 0.16));
+}
+
 .ghost-button:hover,
 .tool-button:hover,
 .template-button:hover,
@@ -380,6 +409,10 @@ button {
 .theme-toggle:hover {
   transform: translateY(-1px);
   box-shadow: var(--hover-shadow);
+}
+
+.export-button:hover {
+  box-shadow: var(--identity-glow-hover);
 }
 
 .hidden-input {
