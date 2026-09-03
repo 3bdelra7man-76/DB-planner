@@ -147,8 +147,11 @@ button {
 .health-mini,
 .modal-backdrop,
 .template-modal,
+.health-modal,
 .template-card,
 .template-name-input,
+.health-modal-summary span,
+.health-modal-message,
 .schema-node,
 .node-header,
 .field-row,
@@ -568,6 +571,13 @@ button {
   display: grid;
   gap: 10px;
   padding-top: 2px;
+  border-radius: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.schema-health:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--health-accent) 24%, transparent);
 }
 
 .schema-health.is-warning,
@@ -592,14 +602,23 @@ button {
   position: relative;
   overflow: hidden;
   padding: 12px;
+  text-align: left;
   border: 1px solid color-mix(in srgb, var(--health-accent) 26%, var(--border));
   border-radius: 12px;
+  color: var(--ink);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--health-accent) 14%, transparent), transparent 58%),
     color-mix(in srgb, var(--surface-solid) 76%, transparent);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 14px 28px color-mix(in srgb, var(--health-accent) 13%, transparent);
+}
+
+.schema-health:hover .health-card {
+  border-color: color-mix(in srgb, var(--health-accent) 42%, var(--border));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 18px 34px color-mix(in srgb, var(--health-accent) 18%, transparent);
 }
 
 .health-card::before {
@@ -824,7 +843,8 @@ button {
   animation: modalFade 160ms ease;
 }
 
-.template-modal {
+.template-modal,
+.health-modal {
   width: min(920px, 100%);
   max-height: min(760px, calc(100vh - 48px));
   display: grid;
@@ -842,9 +862,32 @@ button {
   animation: modalLift 180ms ease;
 }
 
+.health-modal {
+  --health-accent: var(--mint);
+  --health-ink: var(--success-ink);
+  width: min(680px, 100%);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+}
+
+.health-modal.is-warning {
+  --health-accent: var(--amber);
+  --health-ink: var(--warning-ink);
+}
+
+.health-modal.is-danger {
+  --health-accent: var(--coral);
+  --health-ink: var(--error-ink);
+}
+
+.health-modal.is-good {
+  --health-accent: var(--mint);
+  --health-ink: var(--success-ink);
+}
+
 .modal-header,
 .template-modal-actions,
-.template-card-actions {
+.template-card-actions,
+.health-modal-actions {
   display: flex;
   align-items: center;
 }
@@ -870,6 +913,59 @@ button {
 .template-modal-actions .primary-button,
 .template-modal-actions .ghost-button {
   min-width: 136px;
+}
+
+.health-modal-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.health-modal-summary span {
+  min-height: 78px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--health-accent) 24%, var(--border));
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--health-accent) 12%, transparent), transparent 64%),
+    color-mix(in srgb, var(--surface-solid) 78%, transparent);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.health-modal-summary strong {
+  color: var(--health-ink);
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 950;
+}
+
+.health-modal-message {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--health-accent) 10%, var(--surface-solid));
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 800;
+}
+
+.health-issue-list {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.health-modal-actions {
+  justify-content: flex-end;
 }
 
 .template-grid {

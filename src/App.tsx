@@ -356,6 +356,7 @@ function PlannerApp() {
   const [panelTab, setPanelTab] = useState<PanelTab>('inspect');
   const [isLeftRailCollapsed, setIsLeftRailCollapsed] = useState(false);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -424,19 +425,20 @@ function PlannerApp() {
   }, [notice]);
 
   useEffect(() => {
-    if (!isTemplateModalOpen) {
+    if (!isTemplateModalOpen && !isHealthModalOpen) {
       return undefined;
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsTemplateModalOpen(false);
+        setIsHealthModalOpen(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isTemplateModalOpen]);
+  }, [isHealthModalOpen, isTemplateModalOpen]);
 
   useEffect(() => {
     if (selection.kind === 'table' && !schema.tables.some((table) => table.id === selection.tableId)) {
@@ -837,14 +839,16 @@ function PlannerApp() {
             >
               <span className="rail-letter">T</span>
             </button>
-            <div
+            <button
+              type="button"
               className={`icon-button health-mini is-${healthTone}`}
+              onClick={() => setIsHealthModalOpen(true)}
               title={`${healthLabel}: ${issueCounts.errors} errors, ${issueCounts.warnings} warnings`}
               aria-label={`${healthLabel}: ${issueCounts.errors} errors, ${issueCounts.warnings} warnings`}
-              role="status"
+              aria-haspopup="dialog"
             >
               <Activity size={18} />
-            </div>
+            </button>
           </div>
 
           <div id="left-rail-content" className="rail-content" aria-hidden={isLeftRailCollapsed}>
@@ -871,7 +875,21 @@ function PlannerApp() {
               </button>
             </div>
 
-            <div className={`schema-health is-${healthTone}`}>
+            <div
+              className={`schema-health is-${healthTone}`}
+              role="button"
+              tabIndex={0}
+              title="Open health details"
+              aria-label="Open health details"
+              aria-haspopup="dialog"
+              onClick={() => setIsHealthModalOpen(true)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  setIsHealthModalOpen(true);
+                }
+              }}
+            >
               <span className="section-label">Health</span>
               <div className="health-card">
                 <div className="health-card-top">
@@ -1038,6 +1056,100 @@ function PlannerApp() {
           onClose={() => setIsTemplateModalOpen(false)}
         />
       ) : null}
+
+      {isHealthModalOpen ? (
+        <HealthIssuesModal
+          issues={issues}
+          issueCounts={issueCounts}
+          healthTone={healthTone}
+          healthLabel={healthLabel}
+          healthMessage={healthMessage}
+          onShowIssuesPanel={() => {
+            setPanelTab('issues');
+            setIsHealthModalOpen(false);
+          }}
+          onClose={() => setIsHealthModalOpen(false)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function HealthIssuesModal({
+  issues,
+  issueCounts,
+  healthTone,
+  healthLabel,
+  healthMessage,
+  onShowIssuesPanel,
+  onClose,
+}: {
+  issues: ValidationIssue[];
+  issueCounts: { errors: number; warnings: number };
+  healthTone: 'danger' | 'warning' | 'good';
+  healthLabel: string;
+  healthMessage: string;
+  onShowIssuesPanel: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <section className={`health-modal is-${healthTone}`} role="dialog" aria-modal="true" aria-labelledby="health-modal-title">
+        <div className="modal-header">
+          <div>
+            <span className="section-label">Schema Health</span>
+            <h2 id="health-modal-title">{healthLabel}</h2>
+          </div>
+          <button type="button" className="icon-button" title="Close health details" aria-label="Close health details" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="health-modal-summary">
+          <span>
+            <strong>{issueCounts.errors}</strong>
+            errors
+          </span>
+          <span>
+            <strong>{issueCounts.warnings}</strong>
+            warnings
+          </span>
+        </div>
+
+        <p className="health-modal-message">{healthMessage}</p>
+
+        <div className="health-issue-list">
+          {issues.length ? (
+            issues.map((issue) => (
+              <div key={issue.id} className={`issue-item ${issue.severity}`}>
+                <AlertTriangle size={16} />
+                <span>{issue.message}</span>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              <CheckCircle2 size={28} />
+              <span>No errors or warnings right now.</span>
+            </div>
+          )}
+        </div>
+
+        {issues.length ? (
+          <div className="health-modal-actions">
+            <button type="button" className="ghost-button" onClick={onShowIssuesPanel}>
+              Open Issues Panel
+            </button>
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 }
