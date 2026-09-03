@@ -145,6 +145,10 @@ button {
 .health-card,
 .health-signal span,
 .health-mini,
+.modal-backdrop,
+.template-modal,
+.template-card,
+.template-name-input,
 .schema-node,
 .node-header,
 .field-row,
@@ -523,6 +527,25 @@ button {
   padding: 0 11px;
 }
 
+.template-button {
+  justify-content: center;
+}
+
+.template-save-button {
+  border-color: color-mix(in srgb, var(--violet) 30%, var(--border));
+  color: var(--violet);
+}
+
+.template-mini-button {
+  color: var(--violet);
+}
+
+.rail-letter {
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 950;
+}
+
 .tool-button:nth-of-type(1) svg {
   color: var(--teal);
 }
@@ -783,6 +806,153 @@ button {
   box-shadow: 0 16px 34px rgba(7, 11, 25, 0.22);
   font-size: 13px;
   font-weight: 800;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(7, 11, 25, 0.46);
+  backdrop-filter: blur(10px);
+  animation: modalFade 160ms ease;
+}
+
+.template-modal {
+  width: min(920px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 18px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--teal) 10%, transparent), transparent 36%),
+    linear-gradient(315deg, color-mix(in srgb, var(--coral) 10%, transparent), transparent 42%),
+    var(--surface);
+  box-shadow: 0 34px 90px rgba(7, 11, 25, 0.38);
+  animation: modalLift 180ms ease;
+}
+
+.modal-header,
+.template-modal-actions,
+.template-card-actions {
+  display: flex;
+  align-items: center;
+}
+
+.modal-header {
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.template-modal-actions {
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.template-modal-actions .primary-button,
+.template-modal-actions .ghost-button {
+  min-width: 136px;
+}
+
+.template-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  overflow: auto;
+  padding: 2px 4px 4px 2px;
+}
+
+.template-card {
+  min-height: 132px;
+  display: grid;
+  align-content: space-between;
+  gap: 18px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--violet) 9%, transparent), transparent 58%),
+    color-mix(in srgb, var(--surface-solid) 84%, transparent);
+  box-shadow: 0 16px 34px rgba(21, 31, 75, 0.1);
+}
+
+.template-card:hover,
+.template-card.is-editing {
+  border-color: color-mix(in srgb, var(--violet) 42%, var(--border));
+  box-shadow: 0 20px 42px color-mix(in srgb, var(--violet) 18%, transparent);
+}
+
+.template-card.is-editing {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--violet) 16%, transparent), transparent 54%),
+    color-mix(in srgb, var(--surface-solid) 88%, transparent);
+}
+
+.template-name-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 950;
+  outline: none;
+}
+
+.template-name-input:hover,
+.template-name-input:focus {
+  border-color: color-mix(in srgb, var(--teal) 34%, var(--border));
+  background: color-mix(in srgb, var(--surface-solid) 72%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 16%, transparent);
+}
+
+.template-card-actions {
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.template-card-actions .small-button {
+  min-width: 68px;
+}
+
+@keyframes modalFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalLift {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .schema-node {

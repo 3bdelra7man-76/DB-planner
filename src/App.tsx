@@ -28,7 +28,6 @@ import {
   Clipboard,
   Download,
   FileJson2,
-  Grid3X3,
   KeyRound,
   Link2,
   ListChecks,
@@ -36,12 +35,11 @@ import {
   Network,
   PanelRight,
   Plus,
-  Rows3,
-  Sparkles,
   Sun,
   Table2,
   Trash2,
   Upload,
+  X,
 } from 'lucide-react';
 import {
   CARDINALITIES,
@@ -81,9 +79,25 @@ import type {
 
 const STORAGE_KEY = 'db-schema-planner:draft:v1';
 const THEME_STORAGE_KEY = 'db-schema-planner:theme';
+const TEMPLATE_STORAGE_KEY = 'db-schema-planner:templates:v1';
 
 type PanelTab = 'inspect' | 'json' | 'issues';
 type ThemeMode = 'light' | 'dark';
+type TemplateKind = 'auth' | 'commerce' | 'content';
+
+type SchemaTemplate = {
+  id: string;
+  name: string;
+  schema: SchemaDocument;
+  builtIn: boolean;
+  updatedAt: string;
+};
+
+const DEFAULT_TEMPLATES: Array<{ id: string; name: string; kind: TemplateKind }> = [
+  { id: 'template_auth', name: 'Auth', kind: 'auth' },
+  { id: 'template_commerce', name: 'Shop', kind: 'commerce' },
+  { id: 'template_content', name: 'CMS', kind: 'content' },
+];
 
 type TableNodeData = Record<string, unknown> & {
   table: SchemaTable;
@@ -336,16 +350,23 @@ export default function App() {
 
 function PlannerApp() {
   const [schema, setSchema] = usePersistentSchema();
+  const [templates, setTemplates] = usePersistentTemplates();
   const [theme, setTheme] = usePersistentTheme();
   const [selection, setSelection] = useState<Selection>({ kind: 'canvas' });
   const [panelTab, setPanelTab] = useState<PanelTab>('inspect');
   const [isLeftRailCollapsed, setIsLeftRailCollapsed] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const issues = useMemo(() => validateSchema(schema), [schema]);
   const jsonPreview = useMemo(() => JSON.stringify(schema, null, 2), [schema]);
   const isDarkTheme = theme === 'dark';
+  const editingTemplate = useMemo(
+    () => templates.find((template) => template.id === editingTemplateId),
+    [editingTemplateId, templates],
+  );
 
   const updateSchema = useCallback((updater: (current: SchemaDocument) => SchemaDocument) => {
     setSchema((current) => touchSchema(updater(current)));
@@ -401,6 +422,21 @@ function PlannerApp() {
 
     return undefined;
   }, [notice]);
+
+  useEffect(() => {
+    if (!isTemplateModalOpen) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsTemplateModalOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isTemplateModalOpen]);
 
   useEffect(() => {
     if (selection.kind === 'table' && !schema.tables.some((table) => table.id === selection.tableId)) {
@@ -566,9 +602,77 @@ function PlannerApp() {
 
   const replaceSchema = useCallback((nextSchema: SchemaDocument) => {
     setSchema(touchSchema(nextSchema));
+    setEditingTemplateId(null);
     setSelection({ kind: 'canvas' });
     setPanelTab('inspect');
   }, [setSchema]);
+
+  const addTemplateFromCurrent = useCallback(() => {
+    const templateId = createId('template');
+
+    setTemplates((current) => {
+      const templateName = uniqueName(schema.project.name || 'New template', current.map((template) => template.name));
+      return [...current, createTemplateEntry(templateId, templateName, schema)];
+    });
+
+    setEditingTemplateId(templateId);
+    setIsTemplateModalOpen(true);
+    setNotice('Template added.');
+  }, [schema, setTemplates]);
+
+  const renameTemplate = useCallback((templateId: string, nextName: string) => {
+    setTemplates((current) =>
+      current.map((template) => (template.id === templateId ? { ...template, name: nextName } : template)),
+    );
+  }, [setTemplates]);
+
+  const commitTemplateName = useCallback((templateId: string) => {
+    setTemplates((current) =>
+      current.map((template) => {
+        if (template.id !== templateId) {
+          return template;
+        }
+
+        const name = normalizeTemplateName(template.name, 'Untitled template');
+        return { ...template, name, schema: schemaForTemplate(template.schema, name) };
+      }),
+    );
+  }, [setTemplates]);
+
+  const addTemplateToPlanner = useCallback((template: SchemaTemplate) => {
+    replaceSchema(schemaForTemplate(template.schema, template.name));
+    setIsTemplateModalOpen(false);
+    setNotice(`Added ${normalizeTemplateName(template.name, 'Untitled template')}.`);
+  }, [replaceSchema]);
+
+  const editTemplate = useCallback((template: SchemaTemplate) => {
+    replaceSchema(schemaForTemplate(template.schema, template.name));
+    setEditingTemplateId(template.id);
+    setIsTemplateModalOpen(false);
+    setNotice(`Editing ${normalizeTemplateName(template.name, 'Untitled template')}.`);
+  }, [replaceSchema]);
+
+  const saveEditingTemplate = useCallback(() => {
+    if (!editingTemplate) {
+      return;
+    }
+
+    const templateName = normalizeTemplateName(editingTemplate.name, 'Untitled template');
+
+    setTemplates((current) =>
+      current.map((template) =>
+        template.id === editingTemplate.id
+          ? {
+              ...template,
+              name: templateName,
+              schema: schemaForTemplate(schema, templateName),
+              updatedAt: new Date().toISOString(),
+            }
+          : template,
+      ),
+    );
+    setNotice(`Saved ${templateName}.`);
+  }, [editingTemplate, schema, setTemplates]);
 
   const exportJson = useCallback(() => {
     const exportSchema = touchSchema(schema);
@@ -672,6 +776,11 @@ function PlannerApp() {
             <Clipboard size={17} />
             Copy
           </button>
+          {editingTemplate ? (
+            <button type="button" className="ghost-button template-save-button" title={`Save ${editingTemplate.name}`} onClick={saveEditingTemplate}>
+              Save Template
+            </button>
+          ) : null}
           <button type="button" className="primary-button" title="Export JSON" onClick={exportJson}>
             <Download size={17} />
             Export JSON
@@ -719,6 +828,15 @@ function PlannerApp() {
             <button type="button" className="icon-button" title="Add note" aria-label="Add note" onClick={addNoteNode}>
               <Braces size={18} />
             </button>
+            <button
+              type="button"
+              className="icon-button template-mini-button"
+              title="Open templates"
+              aria-label="Open templates"
+              onClick={() => setIsTemplateModalOpen(true)}
+            >
+              <span className="rail-letter">T</span>
+            </button>
             <div
               className={`icon-button health-mini is-${healthTone}`}
               title={`${healthLabel}: ${issueCounts.errors} errors, ${issueCounts.warnings} warnings`}
@@ -748,17 +866,8 @@ function PlannerApp() {
 
             <div className="rail-section">
               <span className="section-label">Templates</span>
-              <button type="button" className="template-button" onClick={() => replaceSchema(createTemplateSchema('auth'))}>
-                <Sparkles size={16} />
-                Auth
-              </button>
-              <button type="button" className="template-button" onClick={() => replaceSchema(createTemplateSchema('commerce'))}>
-                <Grid3X3 size={16} />
-                Shop
-              </button>
-              <button type="button" className="template-button" onClick={() => replaceSchema(createTemplateSchema('content'))}>
-                <Rows3 size={16} />
-                CMS
+              <button type="button" className="template-button" onClick={() => setIsTemplateModalOpen(true)}>
+                Templates
               </button>
             </div>
 
@@ -915,6 +1024,99 @@ function PlannerApp() {
           ) : null}
         </aside>
       </main>
+
+      {isTemplateModalOpen ? (
+        <TemplateLibraryModal
+          templates={templates}
+          editingTemplateId={editingTemplateId}
+          onAddCurrent={addTemplateFromCurrent}
+          onAddTemplate={addTemplateToPlanner}
+          onEditTemplate={editTemplate}
+          onRenameTemplate={renameTemplate}
+          onCommitTemplateName={commitTemplateName}
+          onSaveEditingTemplate={saveEditingTemplate}
+          onClose={() => setIsTemplateModalOpen(false)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function TemplateLibraryModal({
+  templates,
+  editingTemplateId,
+  onAddCurrent,
+  onAddTemplate,
+  onEditTemplate,
+  onRenameTemplate,
+  onCommitTemplateName,
+  onSaveEditingTemplate,
+  onClose,
+}: {
+  templates: SchemaTemplate[];
+  editingTemplateId: string | null;
+  onAddCurrent: () => void;
+  onAddTemplate: (template: SchemaTemplate) => void;
+  onEditTemplate: (template: SchemaTemplate) => void;
+  onRenameTemplate: (templateId: string, name: string) => void;
+  onCommitTemplateName: (templateId: string) => void;
+  onSaveEditingTemplate: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <section className="template-modal" role="dialog" aria-modal="true" aria-labelledby="template-modal-title">
+        <div className="modal-header">
+          <div>
+            <span className="section-label">Library</span>
+            <h2 id="template-modal-title">Templates</h2>
+          </div>
+          <button type="button" className="icon-button" title="Close templates" aria-label="Close templates" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="template-modal-actions">
+          <button type="button" className="primary-button" onClick={onAddCurrent}>
+            New Template
+          </button>
+          {editingTemplateId ? (
+            <button type="button" className="ghost-button" onClick={onSaveEditingTemplate}>
+              Save Template
+            </button>
+          ) : null}
+        </div>
+
+        <div className="template-grid">
+          {templates.map((template) => (
+            <article key={template.id} className={`template-card ${template.id === editingTemplateId ? 'is-editing' : ''}`}>
+              <input
+                value={template.name}
+                aria-label="Template name"
+                className="template-name-input"
+                onChange={(event) => onRenameTemplate(template.id, event.target.value)}
+                onBlur={() => onCommitTemplateName(template.id)}
+              />
+              <div className="template-card-actions">
+                <button type="button" className="small-button" onClick={() => onAddTemplate(template)}>
+                  Add
+                </button>
+                <button type="button" className="small-button" onClick={() => onEditTemplate(template)}>
+                  Edit
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -1411,6 +1613,102 @@ function usePersistentSchema(): [SchemaDocument, React.Dispatch<React.SetStateAc
   }, [schema]);
 
   return [schema, setSchema];
+}
+
+function usePersistentTemplates(): [SchemaTemplate[], React.Dispatch<React.SetStateAction<SchemaTemplate[]>>] {
+  const [templates, setTemplates] = useState<SchemaTemplate[]>(() => {
+    try {
+      const stored = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+      return stored ? normalizeTemplates(JSON.parse(stored)) : createDefaultTemplates();
+    } catch {
+      return createDefaultTemplates();
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
+  }, [templates]);
+
+  return [templates, setTemplates];
+}
+
+function createDefaultTemplates(): SchemaTemplate[] {
+  return DEFAULT_TEMPLATES.map((template) =>
+    createTemplateEntry(template.id, template.name, createTemplateSchema(template.kind), true),
+  );
+}
+
+function createTemplateEntry(id: string, name: string, schema: SchemaDocument, builtIn = false): SchemaTemplate {
+  const templateName = normalizeTemplateName(name, 'Untitled template');
+
+  return {
+    id,
+    name: templateName,
+    schema: schemaForTemplate(schema, templateName),
+    builtIn,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function schemaForTemplate(schema: SchemaDocument, templateName: string): SchemaDocument {
+  const normalized = cloneSchema(schema);
+  return {
+    ...normalized,
+    project: {
+      ...normalized.project,
+      name: normalizeTemplateName(templateName, normalized.project.name || 'Untitled template'),
+    },
+  };
+}
+
+function cloneSchema(schema: SchemaDocument): SchemaDocument {
+  return normalizeSchema(JSON.parse(JSON.stringify(schema)));
+}
+
+function normalizeTemplates(value: unknown): SchemaTemplate[] {
+  const templates = Array.isArray(value) ? value.map(normalizeTemplate).filter((template): template is SchemaTemplate => Boolean(template)) : [];
+  const merged = new Map(createDefaultTemplates().map((template) => [template.id, template]));
+
+  templates.forEach((template) => {
+    merged.set(template.id, {
+      ...template,
+      builtIn: merged.get(template.id)?.builtIn ?? template.builtIn,
+    });
+  });
+
+  return Array.from(merged.values());
+}
+
+function normalizeTemplate(value: unknown, index: number): SchemaTemplate | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  try {
+    const schema = normalizeSchema(value.schema);
+    const fallbackName = schema.project.name || `Template ${index + 1}`;
+    const name = normalizeTemplateName(typeof value.name === 'string' ? value.name : fallbackName, fallbackName);
+    const id = typeof value.id === 'string' && value.id.trim() ? value.id : createId('template');
+    const updatedAt = typeof value.updatedAt === 'string' ? value.updatedAt : new Date().toISOString();
+
+    return {
+      id,
+      name,
+      schema: schemaForTemplate(schema, name),
+      builtIn: value.builtIn === true,
+      updatedAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function normalizeTemplateName(name: string, fallback: string) {
+  return name.trim() || fallback;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function usePersistentTheme(): [ThemeMode, React.Dispatch<React.SetStateAction<ThemeMode>>] {
