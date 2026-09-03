@@ -178,6 +178,7 @@ button {
 .enum-value-chip input,
 .enum-value-add,
 .enum-value-remove,
+.field-flow-actions,
 .toggle-control,
 .field-picker-list button,
 .index-editor,
@@ -1476,9 +1477,9 @@ button {
   font-weight: 900;
 }
 
-.field-label input,
-.field-label select,
-.field-label textarea,
+.field-label > input,
+.field-label > select,
+.field-label > textarea,
 .index-editor input {
   width: 100%;
   min-height: 40px;
@@ -1491,7 +1492,7 @@ button {
   font-weight: 750;
 }
 
-.field-label textarea {
+.field-label > textarea {
   min-height: 74px;
   resize: vertical;
   line-height: 1.45;
@@ -1501,9 +1502,9 @@ button {
   min-height: 160px;
 }
 
-.field-label input:focus,
-.field-label select:focus,
-.field-label textarea:focus,
+.field-label > input:focus,
+.field-label > select:focus,
+.field-label > textarea:focus,
 .enum-value-chip:focus-within,
 .index-editor input:focus {
   border-color: var(--teal);
@@ -1621,6 +1622,23 @@ button {
 
 .inspector-row {
   justify-content: space-between;
+}
+
+.field-flow-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--teal) 8%, transparent), transparent 62%),
+    color-mix(in srgb, var(--surface-solid) 78%, transparent);
+}
+
+.field-flow-actions .small-button {
+  width: 100%;
+  min-width: 0;
 }
 
 .field-picker-list,
@@ -1916,6 +1934,7 @@ button {
     align-items: center;
   }
 
+  .field-flow-actions,
   .toggle-grid,
   .index-field-grid {
     grid-template-columns: 1fr;

@@ -1329,17 +1329,7 @@ function TableInspector({
   updateSchema: (updater: (current: SchemaDocument) => SchemaDocument) => void;
   setSelection: (selection: Selection) => void;
 }) {
-  const addField = () => {
-    const field = createField({ name: uniqueName('new_field', table.fields.map((item) => item.name)) });
-
-    updateSchema((current) => ({
-      ...current,
-      tables: current.tables.map((candidate) =>
-        candidate.id === table.id ? { ...candidate, fields: [...candidate.fields, field] } : candidate,
-      ),
-    }));
-    setSelection({ kind: 'field', tableId: table.id, fieldId: field.id });
-  };
+  const addField = () => addFieldToTable(updateSchema, table, setSelection);
 
   const addIndex = () => {
     const firstField = table.fields[0]?.id;
@@ -1414,13 +1404,29 @@ function FieldInspector({
   updateSchema: (updater: (current: SchemaDocument) => SchemaDocument) => void;
   setSelection: (selection: Selection) => void;
 }) {
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const patchField = (patch: Partial<SchemaField>) => patchTableField(updateSchema, table.id, field.id, patch);
+  const addField = () => addFieldToTable(updateSchema, table, setSelection);
+
+  useEffect(() => {
+    nameInputRef.current?.focus();
+    nameInputRef.current?.select();
+  }, [field.id]);
 
   return (
     <div className="inspector">
       <InspectorHeading icon={<CircleDot size={20} />} eyebrow={table.name} title={field.name || 'Untitled field'} />
+      <div className="field-flow-actions">
+        <button type="button" className="small-button" onClick={() => setSelection({ kind: 'table', tableId: table.id })}>
+          Back to table
+        </button>
+        <button type="button" className="small-button" onClick={addField}>
+          <Plus size={15} />
+          Add another
+        </button>
+      </div>
       <FieldLabel label="Name">
-        <input value={field.name} onChange={(event) => patchField({ name: event.target.value })} />
+        <input ref={nameInputRef} value={field.name} onChange={(event) => patchField({ name: event.target.value })} />
       </FieldLabel>
       <FieldLabel label="Type">
         <select
@@ -1880,6 +1886,22 @@ function patchTable(
     ...current,
     tables: current.tables.map((table) => (table.id === tableId ? { ...table, ...patch } : table)),
   }));
+}
+
+function addFieldToTable(
+  updateSchema: (updater: (current: SchemaDocument) => SchemaDocument) => void,
+  table: SchemaTable,
+  setSelection: (selection: Selection) => void,
+) {
+  const field = createField({ name: uniqueName('new_field', table.fields.map((item) => item.name)) });
+
+  updateSchema((current) => ({
+    ...current,
+    tables: current.tables.map((candidate) =>
+      candidate.id === table.id ? { ...candidate, fields: [...candidate.fields, field] } : candidate,
+    ),
+  }));
+  setSelection({ kind: 'field', tableId: table.id, fieldId: field.id });
 }
 
 function patchTableField(
